@@ -9,6 +9,18 @@ import (
 	_ "github.com/denisenkom/go-mssqldb"
 )
 
+type Requests struct {
+	SR_ID int64
+	Summary string
+
+}
+
+type CountSummary struct {
+	Count int64
+	Service_Request_Stat string
+	Requested string 
+}
+
 var (
 	debug         = flag.Bool("debug", false, "enable debugging")
 	password      = flag.String("password", "Pass@word ", "the database password")
@@ -40,17 +52,49 @@ func main() {
 		log.Fatal("Open connection failed:", err.Error())
 	}
 	defer conn.Close()
-	Report(conn)	
+	// Report(conn)
+	RequestSummary(conn)	
 	fmt.Printf("bye\n")
 }
 
+func RequestSummary (conn *sql.DB){
+	
+	selectDB, err := conn.Query("select count(*) as Count, Service_Request_Stat, Requested from ServiceRequests group by Service_Request_Stat, Requested, Requested")
+	if err != nil {
+		log.Fatal("Prepare failed:", err.Error())
+	}
+	defer selectDB.Close()
+	requests := CountSummary{}
+	req := []CountSummary{}
+	
+	var Count int64
+	var Service_Request_Stat string
+	var Requested string
+
+	for selectDB.Next(){
+		err = selectDB.Scan(&Count, &Service_Request_Stat, &Requested)
+		if err != nil {
+			log.Fatal("Scan failed:", err.Error())
+		}
+		requests.Count = Count
+		requests.Requested = Requested
+		requests.Service_Request_Stat = Service_Request_Stat
+		req = append(req,requests)
+	}
+	// fmt.Printf("%d", req[0].Count)
+	fmt.Printf("%s %s %d\n", Requested, Service_Request_Stat, Count)
+}
+
+
 func Report(conn *sql.DB){
+	
 	selectDB, err := conn.Query("select SR_ID, Summary from ServiceRequests")
 	if err != nil {
 		log.Fatal("Prepare failed:", err.Error())
 	}
 	defer selectDB.Close()
-
+	requests := Requests{}
+	req := []Requests{}
 	var SR_ID int64
 	var Summary string
 	fmt.Printf("SR_ID\t Summary \n")
@@ -59,6 +103,9 @@ func Report(conn *sql.DB){
 		if err != nil {
 			log.Fatal("Scan failed:", err.Error())
 		}
+		requests.SR_ID = SR_ID
+		requests.Summary = Summary
+		req = append(req,requests)
 		fmt.Printf("%d\t%s\n", SR_ID, Summary)
 	}
 	
