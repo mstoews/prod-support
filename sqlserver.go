@@ -113,4 +113,5 @@ func Report(conn *sql.DB){
 
 // connString := fmt.Sprintf("server=%s;port=%d;database=%s;Integrated Security=SSPI" , *server, *port, *database)
 // docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=Pass@word' -p 5433:1433 -d mcr.microsoft.com/mssql/server:2017-latest
+// docker run -e 'ACCEPT_EULA=Y' -e 'MSSQL_SA_PASSWORD=mst$1628' -p 21433:1433 -v sqlvolume:/var/opt/mssql -d mcr.microsoft.com/mssql/server:2019-latest
 	
